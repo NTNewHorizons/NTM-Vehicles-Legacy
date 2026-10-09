@@ -11,7 +11,10 @@ checksum=$(sha256sum "$patch" | cut -d ' ' -f 1)
 jar="$dependency/build/libs/immersivevehicleslegacy-0.1.0-ntmv1-dev.jar"
 
 if [[ ! -d "$dependency/.git" ]]; then
-    git clone --no-checkout https://github.com/THOMASS47/IVL.git "$dependency"
+    # Gradle creates output directories before Exec starts; initialize in place.
+    git init "$dependency"
+    git -C "$dependency" remote add origin https://github.com/THOMASS47/IVL.git
+    git -C "$dependency" fetch --depth 1 origin "$revision"
     git -C "$dependency" checkout --detach "$revision"
 fi
 [[ $(git -C "$dependency" rev-parse HEAD) == "$revision" ]] || {
