@@ -10,20 +10,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldProvider;
+
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+
 import com.google.gson.Gson;
 import com.hbm.entity.effect.EntityNukeTorex;
 import com.hbm.entity.logic.EntityNukeExplosionMK5;
-import com.hbm.explosion.ExplosionChaos;
-import com.hbm.explosion.ExplosionLarge;
 import com.hbm.entity.particle.EntityChlorineFX;
 import com.hbm.entity.particle.EntityCloudFX;
 import com.hbm.entity.particle.EntityOrangeFX;
 import com.hbm.entity.particle.EntityPinkCloudFX;
+import com.hbm.explosion.ExplosionChaos;
+import com.hbm.explosion.ExplosionLarge;
 import com.hbm.main.MainRegistry;
 import com.thomass47.immersivevehicleslegacy.mcinterface1710.WrapperWorld;
-import cpw.mods.fml.common.Mod;
+
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.LoaderException;
+import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.versioning.DefaultArtifactVersion;
 import cpw.mods.fml.common.versioning.VersionParser;
@@ -33,20 +42,17 @@ import minecrafttransportsimulator.items.components.AItemPack;
 import minecrafttransportsimulator.items.instances.ItemBullet;
 import minecrafttransportsimulator.jsondefs.JSONBullet;
 import minecrafttransportsimulator.jsondefs.JSONVariableModifier;
-import net.minecraft.entity.Entity;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldProvider;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.MockedStatic;
 import sun.misc.Unsafe;
 
 public class PackApiCompatibilityTest {
+
     @Test
     public void unchangedPackJsonRetainsBlastAndGasConstants() {
-        JSONBullet bullet = new Gson().fromJson("{\"bullet\":{\"diameter\":120,\"blastStrength\":8,"
-            + "\"types\":[\"CUSTOM\"],\"customHitFunctions\":[\"ntm_vehicles:gas\"]},"
-            + "\"constantValues\":{\"gasType\":2,\"gasSpreadSpeed\":0.75}}", JSONBullet.class);
+        JSONBullet bullet = new Gson().fromJson(
+            "{\"bullet\":{\"diameter\":120,\"blastStrength\":8,"
+                + "\"types\":[\"CUSTOM\"],\"customHitFunctions\":[\"ntm_vehicles:gas\"]},"
+                + "\"constantValues\":{\"gasType\":2,\"gasSpreadSpeed\":0.75}}",
+            JSONBullet.class);
         assertEquals(Arrays.asList("ntm_vehicles:gas"), bullet.bullet.customHitFunctions);
         assertEquals(8, Util.getBlastSize(bullet), 0);
         assertEquals(2, Util.getConstantValue(bullet, "gasType", 0), 0);
@@ -84,11 +90,26 @@ public class PackApiCompatibilityTest {
     public void gasTypeNumbersSelectTheSameNtmEntities() throws Exception {
         World world = mockWorld(false);
         Point3D pos = new Point3D(1.5, 2.5, -3.5);
-        assertEquals(EntityChlorineFX.class, NTMEffects.createGas(world, pos, 0).getClass());
-        assertEquals(EntityCloudFX.class, NTMEffects.createGas(world, pos, 1).getClass());
-        assertEquals(EntityPinkCloudFX.class, NTMEffects.createGas(world, pos, 2).getClass());
-        assertEquals(EntityOrangeFX.class, NTMEffects.createGas(world, pos, 3).getClass());
-        assertEquals(EntityOrangeFX.class, NTMEffects.createGas(world, pos, -1).getClass());
+        assertEquals(
+            EntityChlorineFX.class,
+            NTMEffects.createGas(world, pos, 0)
+                .getClass());
+        assertEquals(
+            EntityCloudFX.class,
+            NTMEffects.createGas(world, pos, 1)
+                .getClass());
+        assertEquals(
+            EntityPinkCloudFX.class,
+            NTMEffects.createGas(world, pos, 2)
+                .getClass());
+        assertEquals(
+            EntityOrangeFX.class,
+            NTMEffects.createGas(world, pos, 3)
+                .getClass());
+        assertEquals(
+            EntityOrangeFX.class,
+            NTMEffects.createGas(world, pos, -1)
+                .getClass());
     }
 
     @Test
@@ -133,15 +154,16 @@ public class PackApiCompatibilityTest {
     public void forgeEntrypointRegistersOriginalIdsAndDoesNothingOnClient() throws Exception {
         Field registryField = EntityBullet.class.getDeclaredField("CUSTOM_HIT_FUNCTIONS");
         registryField.setAccessible(true);
-        Map<String, EntityBullet.CustomHitFunction> registry =
-            (Map<String, EntityBullet.CustomHitFunction>) registryField.get(null);
+        Map<String, EntityBullet.CustomHitFunction> registry = (Map<String, EntityBullet.CustomHitFunction>) registryField
+            .get(null);
         Map<String, EntityBullet.CustomHitFunction> previous = new HashMap<>(registry);
         try {
             new NTMVehicles().preInit(null);
             for (String name : Arrays.asList("ntm_vehicles:nuke", "ntm_vehicles:gas", "ntm_vehicles:napalm")) {
                 assertTrue(registry.containsKey(name));
                 World world = mockWorld(true);
-                registry.get(name).execute(wrap(world), new Point3D(), null, EntityBullet.HitType.BURST, null);
+                registry.get(name)
+                    .execute(wrap(world), new Point3D(), null, EntityBullet.HitType.BURST, null);
                 verify(world, never()).spawnEntityInWorld(any(Entity.class));
             }
         } finally {
@@ -154,34 +176,43 @@ public class PackApiCompatibilityTest {
     public void forgeMetadataRequiresIvlAndNtmNotMtsOrMixinBooter() {
         Mod mod = NTMVehicles.class.getAnnotation(Mod.class);
         assertEquals("ntm_vehicles", mod.modid());
-        assertEquals("required-after:immersivevehicleslegacy@[0.1.0-ntmv2];required-after:hbm@[1.0.27,)",
+        assertEquals(
+            "required-after:immersivevehicleslegacy@[0.1.0-ntmv2];required-after:hbm@[1.0.27,)",
             mod.dependencies());
         assertEquals("[1.7.10]", mod.acceptedMinecraftVersions());
     }
 
     @Test
     public void hbmVersionConstraintAcceptsTestedRuntimeAndRejectsUntestedBuilds() {
-        String dependency = NTMVehicles.class.getAnnotation(Mod.class).dependencies().split(";")[1];
+        String dependency = NTMVehicles.class.getAnnotation(Mod.class)
+            .dependencies()
+            .split(";")[1];
         String versionReference = dependency.substring("required-after:".length());
-        String testedVersion = MainRegistry.class.getAnnotation(Mod.class).version();
+        String testedVersion = MainRegistry.class.getAnnotation(Mod.class)
+            .version();
         assertEquals("1.0.27 BETA (5808)", testedVersion);
-        assertTrue(VersionParser.parseVersionReference(versionReference)
-            .containsVersion(new DefaultArtifactVersion("hbm", testedVersion)));
-        assertFalse(VersionParser.parseVersionReference(versionReference)
-            .containsVersion(new DefaultArtifactVersion("hbm", "1.0.26")));
+        assertTrue(
+            VersionParser.parseVersionReference(versionReference)
+                .containsVersion(new DefaultArtifactVersion("hbm", testedVersion)));
+        assertFalse(
+            VersionParser.parseVersionReference(versionReference)
+                .containsVersion(new DefaultArtifactVersion("hbm", "1.0.26")));
         Loader loader = mock(Loader.class);
         ModContainer hbm = mock(ModContainer.class);
         Map<String, ModContainer> mods = new HashMap<>();
         mods.put("hbm", hbm);
         when(loader.getIndexedModList()).thenReturn(mods);
         try (MockedStatic<Loader> loaders = mockStatic(Loader.class)) {
-            loaders.when(Loader::instance).thenReturn(loader);
+            loaders.when(Loader::instance)
+                .thenReturn(loader);
             when(hbm.getVersion()).thenReturn(testedVersion);
             new NTMVehicles().init(null);
             for (String unsupported : Arrays.asList("1.0.27 BETA (5807)", "1.0.27 BETA (5809)", "1.0.27_X5808")) {
                 when(hbm.getVersion()).thenReturn(unsupported);
                 LoaderException error = assertThrows(LoaderException.class, () -> new NTMVehicles().init(null));
-                assertTrue(error.getMessage().contains(unsupported));
+                assertTrue(
+                    error.getMessage()
+                        .contains(unsupported));
             }
         }
     }
@@ -191,8 +222,8 @@ public class PackApiCompatibilityTest {
     public void registeredGasCallbackUsesTheActualIvlBulletDefinitionOnServer() throws Exception {
         Field registryField = EntityBullet.class.getDeclaredField("CUSTOM_HIT_FUNCTIONS");
         registryField.setAccessible(true);
-        Map<String, EntityBullet.CustomHitFunction> registry =
-            (Map<String, EntityBullet.CustomHitFunction>) registryField.get(null);
+        Map<String, EntityBullet.CustomHitFunction> registry = (Map<String, EntityBullet.CustomHitFunction>) registryField
+            .get(null);
         Map<String, EntityBullet.CustomHitFunction> previous = new HashMap<>(registry);
         try {
             new NTMVehicles().preInit(null);
@@ -201,7 +232,8 @@ public class PackApiCompatibilityTest {
             definition.setAccessible(true);
             definition.set(item, bullet(20, 0));
             World world = mockWorld(false);
-            registry.get("ntm_vehicles:gas").execute(wrap(world), new Point3D(), null, EntityBullet.HitType.ENTITY, item);
+            registry.get("ntm_vehicles:gas")
+                .execute(wrap(world), new Point3D(), null, EntityBullet.HitType.ENTITY, item);
             verify(world, times(2)).spawnEntityInWorld(any(EntityChlorineFX.class));
         } finally {
             registry.clear();
@@ -215,8 +247,9 @@ public class PackApiCompatibilityTest {
         Point3D pos = new Point3D(1.5, 2.5, -3.5);
         EntityNukeExplosionMK5 explosion = mock(EntityNukeExplosionMK5.class);
         try (MockedStatic<EntityNukeExplosionMK5> nukes = mockStatic(EntityNukeExplosionMK5.class);
-             MockedStatic<EntityNukeTorex> clouds = mockStatic(EntityNukeTorex.class)) {
-            nukes.when(() -> EntityNukeExplosionMK5.statFac(world, 8, pos.x, pos.y, pos.z)).thenReturn(explosion);
+            MockedStatic<EntityNukeTorex> clouds = mockStatic(EntityNukeTorex.class)) {
+            nukes.when(() -> EntityNukeExplosionMK5.statFac(world, 8, pos.x, pos.y, pos.z))
+                .thenReturn(explosion);
             NTMEffects.nuke(world, pos, bullet(120, 8.9F));
             nukes.verify(() -> EntityNukeExplosionMK5.statFac(world, 8, pos.x, pos.y, pos.z));
             clouds.verify(() -> EntityNukeTorex.statFacStandard(world, pos.x, pos.y, pos.z, 8));
@@ -228,7 +261,7 @@ public class PackApiCompatibilityTest {
     public void nukeKeepsDiameterFallback() throws Exception {
         World world = mockWorld(false);
         try (MockedStatic<EntityNukeExplosionMK5> nukes = mockStatic(EntityNukeExplosionMK5.class);
-             MockedStatic<EntityNukeTorex> clouds = mockStatic(EntityNukeTorex.class)) {
+            MockedStatic<EntityNukeTorex> clouds = mockStatic(EntityNukeTorex.class)) {
             NTMEffects.nuke(world, new Point3D(), bullet(125, 0));
             nukes.verify(() -> EntityNukeExplosionMK5.statFac(world, 12, 0, 0, 0));
             clouds.verify(() -> EntityNukeTorex.statFacStandard(world, 0, 0, 0, 12));
@@ -241,7 +274,7 @@ public class PackApiCompatibilityTest {
         Point3D pos = new Point3D(-1.5, 2.5, -3.5);
         Random expected = new Random(42);
         try (MockedStatic<ExplosionLarge> explosions = mockStatic(ExplosionLarge.class);
-             MockedStatic<ExplosionChaos> fires = mockStatic(ExplosionChaos.class)) {
+            MockedStatic<ExplosionChaos> fires = mockStatic(ExplosionChaos.class)) {
             NTMEffects.napalm(world, pos);
             explosions.verify(() -> ExplosionLarge.explode(world, pos.x, pos.y, pos.z, 2.5F, false, false, false));
             fires.verify(() -> ExplosionChaos.igniteAllBlocks(world, -2, 2, -4, 9));

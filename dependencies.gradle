@@ -1,0 +1,21 @@
+def ivlJar = file(providers.gradleProperty('ivlJar').getOrElse(
+    '.dependencies/IVL/build/libs/immersivevehicleslegacy-0.1.0-ntmv2-dev.jar'))
+def ntmJar = providers.gradleProperty('ntmJar')
+
+configurations.testImplementation.extendsFrom(configurations.devOnlyNonPublishable)
+
+dependencies {
+    devOnlyNonPublishable files(ivlJar).builtBy(tasks.named('prepareIvl'))
+    if (ntmJar.isPresent()) {
+        devOnlyNonPublishable files(file(ntmJar.get()))
+    } else {
+        def ntmBuildNumber = '5808'
+        devOnlyNonPublishable("com.hbm:HBM-NTM:1.0.27_X${ntmBuildNumber}:dev") { transitive = false }
+    }
+    runtimeOnlyNonPublishable 'com.googlecode.soundlibs:jlayer:1.0.1.4'
+    runtimeOnlyNonPublishable 'org.jcraft:jorbis:0.0.17'
+    runtimeOnlyNonPublishable('com.github.GTNewHorizons:NotEnoughItems:2.8.158-GTNH:dev') { transitive = false }
+    runtimeOnlyNonPublishable('com.github.GTNewHorizons:CodeChickenCore:1.4.22:dev') { transitive = false }
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-inline:4.11.0'
+}

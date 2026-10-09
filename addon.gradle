@@ -1,0 +1,19 @@
+// Keep the bridge version stable locally while honoring the template release workflow.
+def releaseVersion = providers.environmentVariable('VERSION').getOrElse(
+    providers.gradleProperty('modVersion').get())
+if (!(releaseVersion ==~ /v?\d+\.\d+\.\d+-1\.7\.10/)) {
+    throw new GradleException("Invalid bridge version: ${releaseVersion}; expected [v]x.y.z-1.7.10")
+}
+version = releaseVersion
+ext.modVersion = releaseVersion
+
+def ivlJar = file(providers.gradleProperty('ivlJar').getOrElse(
+    '.dependencies/IVL/build/libs/immersivevehicleslegacy-0.1.0-ntmv2-dev.jar'))
+def suppliedIvlJar = providers.gradleProperty('ivlJar').isPresent()
+tasks.register('prepareIvl', Exec) {
+    onlyIf { !suppliedIvlJar }
+    inputs.files('scripts/prepare-dependencies.sh', 'patches/ivl-custom-hit-once.patch')
+    outputs.file(ivlJar)
+    outputs.file('.dependencies/IVL/build/libs/immersivevehicleslegacy-0.1.0-ntmv2.jar')
+    commandLine 'bash', file('scripts/prepare-dependencies.sh')
+}

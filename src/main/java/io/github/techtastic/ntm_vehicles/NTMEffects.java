@@ -1,5 +1,8 @@
 package io.github.techtastic.ntm_vehicles;
 
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
+
 import com.hbm.entity.effect.EntityNukeTorex;
 import com.hbm.entity.logic.EntityNukeExplosionMK5;
 import com.hbm.entity.particle.EntityChlorineFX;
@@ -9,14 +12,14 @@ import com.hbm.entity.particle.EntityOrangeFX;
 import com.hbm.entity.particle.EntityPinkCloudFX;
 import com.hbm.explosion.ExplosionChaos;
 import com.hbm.explosion.ExplosionLarge;
+
 import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.jsondefs.JSONBullet;
-import net.minecraft.util.MathHelper;
-import net.minecraft.world.World;
 
 /** Adapts the upstream effects to the user's 1.7.10 NTM API. */
 final class NTMEffects {
-    private NTMEffects() { }
+
+    private NTMEffects() {}
 
     static void nuke(World world, Point3D pos, JSONBullet definition) {
         int strength = (int) Util.getBlastSize(definition);
@@ -41,10 +44,14 @@ final class NTMEffects {
 
     static EntityModFX createGas(World world, Point3D pos, int gasType) {
         switch (gasType) {
-            case 0: return new EntityChlorineFX(world, pos.x, pos.y, pos.z, 0, 0, 0);
-            case 1: return new EntityCloudFX(world, pos.x, pos.y, pos.z, 0, 0, 0);
-            case 2: return new EntityPinkCloudFX(world, pos.x, pos.y, pos.z, 0, 0, 0);
-            default: return new EntityOrangeFX(world, pos.x, pos.y, pos.z, 0, 0, 0);
+            case 0:
+                return new EntityChlorineFX(world, pos.x, pos.y, pos.z, 0, 0, 0);
+            case 1:
+                return new EntityCloudFX(world, pos.x, pos.y, pos.z, 0, 0, 0);
+            case 2:
+                return new EntityPinkCloudFX(world, pos.x, pos.y, pos.z, 0, 0, 0);
+            default:
+                return new EntityOrangeFX(world, pos.x, pos.y, pos.z, 0, 0, 0);
         }
     }
 
@@ -57,8 +64,13 @@ final class NTMEffects {
         ExplosionChaos.igniteAllBlocks(world, x, y, z, 9);
         ExplosionChaos.igniteFlammableBlocks(world, x, y, z, 14);
         for (int i = 0; i < 5; ++i) {
-            ExplosionLarge.spawnBurst(world, pos.x, pos.y + 1, pos.z,
-                world.rand.nextInt(10) + 15, world.rand.nextFloat() * 2 + 2);
+            ExplosionLarge.spawnBurst(
+                world,
+                pos.x,
+                pos.y + 1,
+                pos.z,
+                world.rand.nextInt(10) + 15,
+                world.rand.nextFloat() * 2 + 2);
         }
     }
 }

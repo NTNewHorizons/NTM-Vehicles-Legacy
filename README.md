@@ -8,8 +8,9 @@ not the 1.12.2 NTM fork. No mixins are required. Use the patched IVL build descr
 
 ## Build
 
-Use Java 25 to run Gradle/RFG; compilation and Minecraft use an automatically
-provisioned Java 8 toolchain. The wrapper uses the same Gradle/RFG generation as IVL.
+The build uses the supplied GTNH starter template: its convention plugin, Gradle
+wrapper, Java 25 daemon, formatting rules, and shared GitHub workflows. Compilation
+and Minecraft use an automatically provisioned Java 8 toolchain.
 
 Build from a clean checkout (requires Git, Bash, and network access):
 
@@ -22,6 +23,11 @@ Dependencies are pinned; no sibling checkout or prebuilt JAR is needed:
 - HBM: `com.hbm:HBM-NTM:1.0.27_X5808:dev` from `https://maven.ntmr.dev/releases/`.
 - IVL: `THOMASS47/IVL` commit `d32bf237d2eb741ce11f86285a7bbe6157722be1`.
 - IV core: `DonBruce64/MinecraftTransportSimulator` commit `cd9cfb8fe74dbcc426eb830f14822adf7402261f`.
+
+`dependencies.gradle` declares the development dependencies; `repositories.gradle`
+adds NTM's Maven repository. `addon.gradle` prepares patched IVL and supplies the
+local default version from `modVersion` in `gradle.properties`. Release builds use
+the shared workflow's `VERSION` environment variable instead.
 
 `scripts/prepare-dependencies.sh` builds IVL under `.dependencies/IVL` and applies
 `patches/ivl-custom-hit-once.patch`. The patch removes the second CUSTOM dispatch
@@ -53,7 +59,7 @@ this alongside the original 1.12.2 bridge; both use the same mod ID.
 The bridge jar bundles neither dependency.
 
 `./gradlew runClient` loads the two development jars, development NEI and
-CodeChickenCore, and IVL's audio libraries. Do not duplicate those jars in `run/mods`.
+CodeChickenCore, and IVL's audio libraries. Do not duplicate those jars in `run/client/mods`.
 The upstream `libs/Immersive Vehicles-1.12.2-22.18.0.jar` is retained but unused.
 
 ## Unchanged pack-creator API
@@ -128,20 +134,21 @@ merge `backport` into this repository's `master`. Do not merge it into
 
 ## Releases
 
-The workflow builds and runs regression tests on pull requests, branch pushes,
-`*-1.7.10` tags, and manual dispatch. GitHub releases are published only on tag pushes.
-Tags must equal `mod_version`, optionally prefixed with `v` (for example,
-`v1.0.0-1.7.10`). A manual dispatch builds and uploads artifacts without publishing.
-Tag runs test first, then create a GitHub release with the reobfuscated bridge,
-sources, and SHA-256 checksums. CurseForge and Modrinth
-publishing are intentionally disabled until separate 1.7.10 projects are configured.
+The template's `build-and-test.yml` calls GTNH's shared workflow for pull requests
+targeting `master` or `main` and pushes to those branches. It builds, checks formatting,
+runs regression tests, and performs the shared automated server startup check.
+Local verification does not launch Minecraft; gameplay testing remains a user task.
 
-Maven publishing is opt-in and uses the reobfuscated artifact, never the dev JAR:
+`release-tags.yml` uses GTNH's shared release workflow, restricted to `*-1.7.10`
+tags. Versions must follow `[v]x.y.z-1.7.10`, for example `v1.0.0-1.7.10`.
+`assemble` depends on the regression tests so tag builds cannot publish after a
+test failure. The shared workflow publishes the bridge artifacts in `build/libs`;
+dependency JARs remain outside that directory. Install the plain bridge JAR, not
+the `-dev` or `-sources` artifacts.
 
-```sh
-./gradlew publish -Ppublish_to_maven=true -Pmaven_url=https://your-repository/releases/
-# Supply MAVEN_USER and MAVEN_PASS through the environment.
-./gradlew publish -Ppublish_to_maven=true -Pmaven_url=file:/tmp/opencode/ntmv-maven-dry-run
-```
+GTNH conventions handle Maven publications. Remote Maven publishing requires
+`MAVEN_USER` and `MAVEN_PASSWORD`; override the destination with `-PmavenPublishUrl=...`
+or the workflow's `MAVEN_PUBLISHING_URL` repository variable. Modrinth and CurseForge
+remain disabled until their project IDs are configured in `gradle.properties`.
 
-Without an opt-in destination, `publish` fails rather than silently doing nothing.
+To roll back the build migration, revert its commit. It changes no saved world data.

@@ -1,14 +1,17 @@
 package io.github.techtastic.ntm_vehicles;
 
-import com.thomass47.immersivevehicleslegacy.mcinterface1710.WrapperWorld;
-import minecrafttransportsimulator.mcinterface.AWrapperWorld;
-import minecrafttransportsimulator.jsondefs.JSONBullet;
-import minecrafttransportsimulator.jsondefs.JSONVariableModifier;
-import net.minecraft.world.World;
-
 import java.lang.reflect.Field;
 
+import net.minecraft.world.World;
+
+import com.thomass47.immersivevehicleslegacy.mcinterface1710.WrapperWorld;
+
+import minecrafttransportsimulator.jsondefs.JSONBullet;
+import minecrafttransportsimulator.jsondefs.JSONVariableModifier;
+import minecrafttransportsimulator.mcinterface.AWrapperWorld;
+
 public class Util {
+
     private static final Field WORLD_FIELD = findWorldField();
 
     private static Field findWorldField() {
@@ -33,19 +36,16 @@ public class Util {
     }
 
     public static JSONVariableModifier getVariableModifier(JSONBullet definition, String name) {
-        if (definition.variableModifiers == null)
-            return null;
+        if (definition.variableModifiers == null) return null;
 
         for (JSONVariableModifier var : definition.variableModifiers) {
-            if (var.variable.equals(name))
-                return var;
+            if (var.variable.equals(name)) return var;
         }
         return null;
     }
 
     public static double getConstantValue(JSONBullet definition, String name, double defaultValue) {
-        if (definition.constantValues == null)
-            return defaultValue;
+        if (definition.constantValues == null) return defaultValue;
         return definition.constantValues.getOrDefault(name, defaultValue);
     }
 
