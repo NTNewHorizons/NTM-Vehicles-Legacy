@@ -12,13 +12,13 @@ The build uses the supplied GTNH starter template: its convention plugin, Gradle
 wrapper, Java 25 daemon, formatting rules, and project-specific GitHub workflows. Compilation
 and Minecraft use an automatically provisioned Java 8 toolchain.
 
-Build from a clean checkout (requires Git, Bash, network access, and authorized IVL access):
+Build from a clean checkout (requires Git, Bash, network access, and authorized IVL access while IVL remains private):
 
 ```sh
 ./gradlew build
 ```
 
-Dependencies are pinned. IVL is private; an unauthenticated public build is not supported:
+Dependencies are pinned. IVL is currently private; anonymous builds work once it becomes public:
 
 - HBM: `com.hbm:HBM-NTM:1.0.27_X5808:dev` from `https://maven.ntmr.dev/releases/`.
 - IVL: `THOMASS47/IVL` commit `d32bf237d2eb741ce11f86285a7bbe6157722be1`.
@@ -48,10 +48,12 @@ The source override changes the location, not the required commit. Alternatively
 use `-PivlJar` with an authorized, patched development artifact as shown below.
 Do not publicly mirror or redistribute IVL without the license holder's permission.
 
-CI and tag builds require repository secret **`IVL_READ_TOKEN`** with that same
-read-only scope. The ordinary `GITHUB_TOKEN` cannot access a different private
-repository. Maintainers must configure this secret; the workflow fails explicitly
-if it is missing. Fork PRs do not receive secrets: contributors must build locally,
+While IVL is private, CI and tag builds need repository secret **`IVL_READ_TOKEN`**
+with that same read-only scope. The ordinary `GITHUB_TOKEN` cannot access a different
+private repository. This secret is optional: without it, builds try anonymous
+access and report an actionable fetch error if IVL is still private. Once IVL is
+public, remove the secret; the same pinned source builds without credentials.
+Fork PRs do not receive secrets: while IVL is private, contributors must build locally,
 and maintainers can review and transfer trusted changes to an internal branch.
 Do not use `pull_request_target` to run untrusted code with the token.
 

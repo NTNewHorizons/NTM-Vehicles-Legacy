@@ -4,7 +4,7 @@ on:
   workflow_call:
     secrets:
       IVL_READ_TOKEN:
-        required: true
+        required: false
 
 permissions:
   contents: read
@@ -16,14 +16,6 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - name: Require private dependency access
-        env:
-          IVL_READ_TOKEN: ${{ secrets.IVL_READ_TOKEN }}
-        run: |
-          test -n "$IVL_READ_TOKEN" || {
-            echo 'Configure IVL_READ_TOKEN with read-only access to THOMASS47/IVL. Fork PRs cannot access this secret.' >&2
-            exit 1
-          }
       - uses: actions/setup-java@v5
         with:
           distribution: zulu

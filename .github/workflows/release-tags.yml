@@ -28,7 +28,6 @@ jobs:
         env:
           IVL_READ_TOKEN: ${{ secrets.IVL_READ_TOKEN }}
         run: |
-          test -n "$IVL_READ_TOKEN" || { echo 'Configure IVL_READ_TOKEN for private IVL access.' >&2; exit 1; }
           python3 -m unittest discover -s scripts/tests
           bash gradlew --no-daemon build
       - name: Reject unsupported publication destinations
