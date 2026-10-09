@@ -28,7 +28,8 @@ jobs:
       - name: Stage release artifacts
         run: |
           mkdir -p build/release
-          cp build/libs/ntm_vehicles-*.jar build/release/
+          version=$(sed -n 's/^mod_version[[:space:]]*=[[:space:]]*//p' gradle.properties)
+          cp "build/libs/ntm_vehicles-$version.jar" "build/libs/ntm_vehicles-$version-sources.jar" build/release/
           (cd build/release && sha256sum *.jar > SHA256SUMS)
       - uses: actions/upload-artifact@v4
         with:
