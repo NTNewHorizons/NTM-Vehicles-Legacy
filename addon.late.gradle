@@ -1,13 +1,6 @@
-tasks.named('processResources') {
-    exclude 'mixins.ntm_vehicles.json'
-}
-
 tasks.named('jar') {
     from('LICENSE')
 }
-
-// The shared release workflow assembles before publishing. Keep regression tests mandatory.
-tasks.named('assemble') { dependsOn 'test' }
 
 tasks.named('test') { useJUnit() }
 

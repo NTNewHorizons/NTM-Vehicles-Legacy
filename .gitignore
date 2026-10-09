@@ -35,6 +35,5 @@ addon.local.gradle.kts
 addon.late.local.gradle
 addon.late.local.gradle.kts
 layout.json
+# Locally built patched IVL checkout (see scripts/prepare-dependencies.sh).
 .dependencies/
-.gtnh-workflows/
-__pycache__/

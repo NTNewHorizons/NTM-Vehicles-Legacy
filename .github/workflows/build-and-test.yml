@@ -1,3 +1,4 @@
+
 name: Build and test
 
 on:
@@ -8,5 +9,5 @@ on:
 
 jobs:
   build-and-test:
-    uses: ./.github/workflows/gradle-build.yml
+    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/build-and-test.yml@master
     secrets: inherit
