@@ -19,8 +19,14 @@ import com.hbm.entity.particle.EntityChlorineFX;
 import com.hbm.entity.particle.EntityCloudFX;
 import com.hbm.entity.particle.EntityOrangeFX;
 import com.hbm.entity.particle.EntityPinkCloudFX;
+import com.hbm.main.MainRegistry;
 import com.thomass47.immersivevehicleslegacy.mcinterface1710.WrapperWorld;
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.LoaderException;
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.versioning.DefaultArtifactVersion;
+import cpw.mods.fml.common.versioning.VersionParser;
 import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.entities.instances.EntityBullet;
 import minecrafttransportsimulator.items.components.AItemPack;
@@ -148,8 +154,36 @@ public class PackApiCompatibilityTest {
     public void forgeMetadataRequiresIvlAndNtmNotMtsOrMixinBooter() {
         Mod mod = NTMVehicles.class.getAnnotation(Mod.class);
         assertEquals("ntm_vehicles", mod.modid());
-        assertEquals("required-after:immersivevehicleslegacy@[0.1.0-ntmv1];required-after:hbm", mod.dependencies());
+        assertEquals("required-after:immersivevehicleslegacy@[0.1.0-ntmv2];required-after:hbm@[1.0.27,)",
+            mod.dependencies());
         assertEquals("[1.7.10]", mod.acceptedMinecraftVersions());
+    }
+
+    @Test
+    public void hbmVersionConstraintAcceptsTestedRuntimeAndRejectsUntestedBuilds() {
+        String dependency = NTMVehicles.class.getAnnotation(Mod.class).dependencies().split(";")[1];
+        String versionReference = dependency.substring("required-after:".length());
+        String testedVersion = MainRegistry.class.getAnnotation(Mod.class).version();
+        assertEquals("1.0.27 BETA (5808)", testedVersion);
+        assertTrue(VersionParser.parseVersionReference(versionReference)
+            .containsVersion(new DefaultArtifactVersion("hbm", testedVersion)));
+        assertFalse(VersionParser.parseVersionReference(versionReference)
+            .containsVersion(new DefaultArtifactVersion("hbm", "1.0.26")));
+        Loader loader = mock(Loader.class);
+        ModContainer hbm = mock(ModContainer.class);
+        Map<String, ModContainer> mods = new HashMap<>();
+        mods.put("hbm", hbm);
+        when(loader.getIndexedModList()).thenReturn(mods);
+        try (MockedStatic<Loader> loaders = mockStatic(Loader.class)) {
+            loaders.when(Loader::instance).thenReturn(loader);
+            when(hbm.getVersion()).thenReturn(testedVersion);
+            new NTMVehicles().init(null);
+            for (String unsupported : Arrays.asList("1.0.27 BETA (5807)", "1.0.27 BETA (5809)", "1.0.27_X5808")) {
+                when(hbm.getVersion()).thenReturn(unsupported);
+                LoaderException error = assertThrows(LoaderException.class, () -> new NTMVehicles().init(null));
+                assertTrue(error.getMessage().contains(unsupported));
+            }
+        }
     }
 
     @Test

@@ -35,14 +35,14 @@ repositories {
 
 // Build the pinned, dispatcher-patched IVL revision unless explicitly overridden.
 def ivlJar = file(providers.gradleProperty('ivlJar').getOrElse(
-    '.dependencies/IVL/build/libs/immersivevehicleslegacy-0.1.0-ntmv1-dev.jar'))
+    '.dependencies/IVL/build/libs/immersivevehicleslegacy-0.1.0-ntmv2-dev.jar'))
 def ntmJar = providers.gradleProperty('ntmJar')
 
 tasks.register('prepareIvl', Exec) {
     onlyIf { !providers.gradleProperty('ivlJar').isPresent() }
     inputs.files('scripts/prepare-dependencies.sh', 'patches/ivl-custom-hit-once.patch')
     outputs.file(ivlJar)
-    outputs.file('.dependencies/IVL/build/libs/immersivevehicleslegacy-0.1.0-ntmv1.jar')
+    outputs.file('.dependencies/IVL/build/libs/immersivevehicleslegacy-0.1.0-ntmv2.jar')
     commandLine 'bash', file('scripts/prepare-dependencies.sh')
 }
 

@@ -8,7 +8,7 @@ core_revision=cd9cfb8fe74dbcc426eb830f14822adf7402261f
 patch="$root/patches/ivl-custom-hit-once.patch"
 stamp="$dependency/.bridge-patch-sha256"
 checksum=$(sha256sum "$patch" | cut -d ' ' -f 1)
-jar="$dependency/build/libs/immersivevehicleslegacy-0.1.0-ntmv1-dev.jar"
+jar="$dependency/build/libs/immersivevehicleslegacy-0.1.0-ntmv2-dev.jar"
 
 if [[ ! -d "$dependency/.git" ]]; then
     # Gradle creates output directories before Exec starts; initialize in place.
@@ -35,6 +35,6 @@ else
     git -C "$dependency" apply --check "$patch"
     git -C "$dependency" apply "$patch"
 fi
-VERSION=0.1.0-ntmv1 bash "$dependency/gradlew" -p "$dependency" --no-daemon assemble
+VERSION=0.1.0-ntmv2 bash "$dependency/gradlew" -p "$dependency" --no-daemon assemble
 test -f "$jar"
 printf '%s\n' "$checksum" > "$stamp"

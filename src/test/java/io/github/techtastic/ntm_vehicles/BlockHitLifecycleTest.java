@@ -39,21 +39,36 @@ import sun.misc.Unsafe;
 public class BlockHitLifecycleTest {
     @Test
     public void nuclearBlockImpactRunsOnce() throws Exception {
-        assertBlockLifecycle("ntm_vehicles:nuke");
+        assertBlockLifecycle("ntm_vehicles:nuke", true);
     }
 
     @Test
     public void gasBlockImpactRunsOnce() throws Exception {
-        assertBlockLifecycle("ntm_vehicles:gas");
+        assertBlockLifecycle("ntm_vehicles:gas", true);
     }
 
     @Test
     public void napalmBlockImpactRunsOnce() throws Exception {
-        assertBlockLifecycle("ntm_vehicles:napalm");
+        assertBlockLifecycle("ntm_vehicles:napalm", true);
+    }
+
+    @Test
+    public void nuclearBlockImpactRunsOnceWithExplosionsDisabled() throws Exception {
+        assertBlockLifecycle("ntm_vehicles:nuke", false);
+    }
+
+    @Test
+    public void gasBlockImpactRunsOnceWithExplosionsDisabled() throws Exception {
+        assertBlockLifecycle("ntm_vehicles:gas", false);
+    }
+
+    @Test
+    public void napalmBlockImpactRunsOnceWithExplosionsDisabled() throws Exception {
+        assertBlockLifecycle("ntm_vehicles:napalm", false);
     }
 
     @SuppressWarnings("unchecked")
-    private static void assertBlockLifecycle(String function) throws Exception {
+    private static void assertBlockLifecycle(String function, boolean explosions) throws Exception {
         Field registryField = EntityBullet.class.getDeclaredField("CUSTOM_HIT_FUNCTIONS");
         registryField.setAccessible(true);
         Map<String, EntityBullet.CustomHitFunction> registry =
@@ -65,6 +80,7 @@ public class BlockHitLifecycleTest {
             registry.clear();
             new NTMVehicles().preInit(null);
             ConfigSystem.settings = new JSONConfigSettings();
+            ConfigSystem.settings.damage.bulletExplosions.value = explosions;
             ConfigSystem.settings.damage.packBulletDamageFactors.value.put("test", 1D);
             InterfaceManager.packetInterface = mock(IInterfacePacket.class);
             World actualWorld = mock(World.class);

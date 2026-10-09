@@ -3,7 +3,7 @@
 Backport of [TechTastic's NTM: Vehicles](https://github.com/TechTastic/NTM-Vehicles),
 from the [NTNewHorizons fork](https://github.com/NTNewHorizons/NTM-Vehicles).
 Requires **Immersive Vehicles: Legacy** (`immersivevehicleslegacy`) and **Hbm's
-Nuclear Tech Mod** (`hbm`). This repository targets the HBM 1.0.27_X5808 API,
+Nuclear Tech Mod** (`hbm`). This repository requires HBM 1.0.27_X5808,
 not the 1.12.2 NTM fork. No mixins are required. Use the patched IVL build described below.
 
 ## Build
@@ -25,12 +25,21 @@ Dependencies are pinned; no sibling checkout or prebuilt JAR is needed:
 
 `scripts/prepare-dependencies.sh` builds IVL under `.dependencies/IVL` and applies
 `patches/ivl-custom-hit-once.patch`. The patch removes the second CUSTOM dispatch
-from delayed block-state processing. Effects run once at the precise impact position.
-Install the resulting **`immersivevehicleslegacy-0.1.0-ntmv1.jar`** instead of an
+from delayed block-state processing and keeps server-side CUSTOM callbacks independent
+of `bulletExplosions`. Effects run once at the precise impact position.
+Install the resulting **`immersivevehicleslegacy-0.1.0-ntmv2.jar`** instead of an
 unpatched IVL JAR. IVL is built locally, not redistributed in bridge releases.
 Its license restricts public redistribution of derivatives. The bridge
 cannot deduplicate safely by itself: IVL's callback API exposes no projectile ID.
-Forge requires IVL version `0.1.0-ntmv1`, rejecting older unpatched builds at startup.
+Forge requires IVL version `0.1.0-ntmv2`, rejecting older builds at startup.
+Use a fresh checkout when upgrading a previously patched dependency build.
+
+HBM compatibility is limited to the tested `1.0.27_X5808` artifact, whose Forge
+version is `1.0.27 BETA (5808)`. The dependency declaration requires HBM 1.0.27 or
+later; an initialization check requires that exact runtime version because Forge
+cannot parse its closing parenthesis in a version range. Older and newer builds
+remain unsupported until tested; this is not a claim that X5808
+is the oldest compatible HBM build. Development JAR overrides do not relax this requirement.
 
 For explicitly supplied development artifacts (IVL must include the dispatcher fix):
 
@@ -88,9 +97,9 @@ No pack JSON changes are required by the bridge port. This does not translate
 unrelated 1.12.2 NTM item IDs or add cross-mod fluid/energy integrations that the
 upstream bridge never provided.
 
-Effects execute only on the server. IVL still controls custom-hit dispatch and
-its bullet damage/explosion settings. Effect implementation, gas damage,
-radiation, tracking, and visuals follow the installed **1.7.10 NTM**; they are
+Effects execute only on the server, even when IVL's `bulletExplosions` setting is
+disabled. That setting still controls IVL's EXPLOSIVE bullets. Effect implementation,
+gas damage, radiation, tracking, and visuals follow the installed **1.7.10 NTM**; they are
 not a backport of the entire 1.12.2 NTM engine or its dimension restrictions.
 
 ## Verification and rollback
@@ -100,15 +109,16 @@ dependencies, IVL world unwrapping, all gas types, count, position, velocity,
 nuclear factory arguments, napalm ignition/bursts, registered server callback,
 and client-side suppression against the real dependency classes.
 
-Three additional lifecycle tests run actual IVL collision detection and next-tick
-block processing for nuclear, gas, and napalm callbacks. They also check that two
-bullets at the same location both fire, without suppressing the second impact.
+Six lifecycle tests run actual IVL collision detection and next-tick block processing
+for nuclear, gas, and napalm callbacks with `bulletExplosions` enabled and disabled.
+They also check that two bullets at the same location both fire, without suppressing
+the second impact.
 Gameplay verification remains separate from automated tests.
 
 For gameplay verification use a disposable world: fire each custom bullet at
 blocks and entities, check nuclear damage/cloud/radiation, gas types/protection,
-and napalm ignition/bursts. Repeat on a dedicated server. Startup and unit tests
-alone do not establish gameplay parity.
+and napalm ignition/bursts. Repeat on a dedicated server with `bulletExplosions=true`
+and `bulletExplosions=false`. Startup and unit tests alone do not establish gameplay parity.
 
 The bridge adds no blocks, items, saved data, or migration writes. Roll back by
 removing its jar; packs may stay installed, but those custom effects will no
@@ -118,7 +128,8 @@ merge `backport` into this repository's `master`. Do not merge it into
 
 ## Releases
 
-The release workflow runs only on `*-1.7.10` tags or manual dispatch, not every push.
+The workflow builds and runs regression tests on pull requests, branch pushes,
+`*-1.7.10` tags, and manual dispatch. GitHub releases are published only on tag pushes.
 Tags must equal `mod_version`, optionally prefixed with `v` (for example,
 `v1.0.0-1.7.10`). A manual dispatch builds and uploads artifacts without publishing.
 Tag runs test first, then create a GitHub release with the reobfuscated bridge,
