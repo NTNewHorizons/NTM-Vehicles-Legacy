@@ -1,0 +1,29 @@
+diff --git a/src/main/java/minecrafttransportsimulator/entities/instances/EntityBullet.java b/src/main/java/minecrafttransportsimulator/entities/instances/EntityBullet.java
+--- a/src/main/java/minecrafttransportsimulator/entities/instances/EntityBullet.java
++++ b/src/main/java/minecrafttransportsimulator/entities/instances/EntityBullet.java
+@@ -624,13 +624,8 @@ public class EntityBullet extends AEntityD_Definable<JSONBullet> {
+                 }
+             }
+ 
+-            if (gun.lastLoadedBullet.definition.bullet.types.contains(BulletType.CUSTOM)) {
+-                List<String> functions = gun.lastLoadedBullet.definition.bullet.customHitFunctions;
+-                for (String function : functions) {
+-                    if (CUSTOM_HIT_FUNCTIONS.containsKey(function))
+-                        CUSTOM_HIT_FUNCTIONS.get(function).execute(gun.world, blockPosition, blockSide, HitType.BLOCK, gun.lastLoadedBullet);
+-                }
+-            }
++            //Custom effects already ran at the precise impact position in generic hit logic.
++            //This delayed pass only changes block state; dispatching again doubles effects.
+         } else if (gun.lastLoadedBullet.definition.bullet.types.isEmpty()) {
+         	//Don't do a state-change on the client, just make a breaking sound.
+             //Fancy bullets don't make block-breaking sounds.  They do other things instead.
+@@ -667,6 +662,9 @@ public class EntityBullet extends AEntityD_Definable<JSONBullet> {
+             }
++        }
+
++        //Custom effects are server-side but independent of vanilla bullet explosions.
++        if (!gun.world.isClient()) {
+             if (gun.lastLoadedBullet.definition.bullet.types.contains(BulletType.CUSTOM)) {
+                 List<String> functions = gun.lastLoadedBullet.definition.bullet.customHitFunctions;
+                 for (String function : functions) {
+                     if (CUSTOM_HIT_FUNCTIONS.containsKey(function))

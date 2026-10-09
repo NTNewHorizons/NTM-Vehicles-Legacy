@@ -1,73 +1,63 @@
 package io.github.techtastic.ntm_vehicles;
 
-import com.hbm.entity.effect.EntityNukeTorex;
-import com.hbm.entity.logic.EntityBomber;
-import com.hbm.entity.logic.EntityNukeExplosionMK5;
-import com.hbm.explosion.ExplosionChaos;
-import com.hbm.explosion.ExplosionLarge;
-import com.hbm.lib.HBMSoundHandler;
-import io.github.techtastic.ntm_vehicles.ntm_vehicles.Tags;
-import mcinterface1122.WrapperWorld;
-import minecrafttransportsimulator.entities.instances.EntityBullet;
-import minecrafttransportsimulator.jsondefs.JSONVariableModifier;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.reflect.Field;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.LoaderException;
+import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import minecrafttransportsimulator.entities.instances.EntityBullet;
 
-@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, dependencies = "required-after:mts@[22.18.0,);required-after:hbm;required-after:mixinbooter", acceptableRemoteVersions = "*")
+@Mod(
+    modid = NTMVehicles.MOD_ID,
+    name = NTMVehicles.MOD_NAME,
+    version = Tags.VERSION,
+    dependencies = "required-after:immersivevehicleslegacy@[0.1.0-ntmv2];required-after:hbm@[1.0.27,)",
+    acceptedMinecraftVersions = "[1.7.10]",
+    acceptableRemoteVersions = "*")
 public class NTMVehicles {
 
-    public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
+    public static final String MOD_ID = "ntm_vehicles";
+    public static final String MOD_NAME = "NTM: Vehicles";
+    public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
 
-    /**
-     * <a href="https://cleanroommc.com/wiki/forge-mod-development/event#overview">
-     *     Take a look at how many FMLStateEvents you can listen to via the @Mod.EventHandler annotation here
-     * </a>
-     */
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
+        // Forge's range parser cannot express versions containing a closing parenthesis.
+        String hbmVersion = Loader.instance()
+            .getIndexedModList()
+            .get("hbm")
+            .getVersion();
+        if (!"1.0.27 BETA (5808)".equals(hbmVersion)) {
+            throw new LoaderException(
+                "NTM: Vehicles requires HBM 1.0.27_X5808 (runtime version " + "1.0.27 BETA (5808)); found "
+                    + hbmVersion);
+        }
+    }
+
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         EntityBullet.registerCustomHitFunction("ntm_vehicles:nuke", (world, pos, side, type, bullet) -> {
-            World actualWorld = Util.getWorld((WrapperWorld) world);
-
-            if (actualWorld == null)
-                return;
-
-            actualWorld.spawnEntity(EntityNukeExplosionMK5.statFac(actualWorld, (int) Util.getBlastSize(bullet.definition), pos.x, pos.y, pos.z));
-            EntityNukeTorex.statFac(actualWorld, pos.x, pos.y, pos.z, (int) Util.getBlastSize(bullet.definition));
+            World actualWorld = Util.getWorld(world);
+            if (actualWorld != null && !actualWorld.isRemote) {
+                NTMEffects.nuke(actualWorld, pos, bullet.definition);
+            }
         });
-
         EntityBullet.registerCustomHitFunction("ntm_vehicles:gas", (world, pos, side, type, bullet) -> {
-            World actualWorld = Util.getWorld((WrapperWorld) world);
-
-            if (actualWorld == null)
-                return;
-
-            double speed = Util.getConstantValue(bullet.definition, "gasSpreadSpeed", 1.25);
-            int gasType = (int) Util.getConstantValue(bullet.definition, "gasType", 0);
-            ExplosionChaos.spawnChlorine(actualWorld, pos.x, pos.y, pos.z, (int) Util.getBlastSize(bullet.definition), speed, gasType);
+            World actualWorld = Util.getWorld(world);
+            if (actualWorld != null && !actualWorld.isRemote) {
+                NTMEffects.gas(actualWorld, pos, bullet.definition);
+            }
         });
-
         EntityBullet.registerCustomHitFunction("ntm_vehicles:napalm", (world, pos, side, type, bullet) -> {
-            World actualWorld = Util.getWorld((WrapperWorld) world);
-
-            if (actualWorld == null)
-                return;
-
-            //actualWorld.spawnEntity(EntityBomber.statFacNapalm(actualWorld, pos.x, pos.y, pos.z));
-
-            ExplosionLarge.explode(actualWorld, pos.x, pos.y, pos.z, 2.5f, false, false, false);
-            ExplosionChaos.burn(actualWorld, new BlockPos(pos.x, pos.y, pos.z), 9);
-            ExplosionChaos.flameDeath(actualWorld, new BlockPos(pos.x, pos.y, pos.z), 14);
-
-            for(int i = 0; i < 5; i++)
-                ExplosionLarge.spawnBurst(actualWorld, pos.x, pos.y + 1, pos.z, actualWorld.rand.nextInt(10) + 15, actualWorld.rand.nextFloat() * 2 + 2);
+            World actualWorld = Util.getWorld(world);
+            if (actualWorld != null && !actualWorld.isRemote) {
+                NTMEffects.napalm(actualWorld, pos);
+            }
         });
     }
 }

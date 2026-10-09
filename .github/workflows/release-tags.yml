@@ -1,0 +1,54 @@
+name: Release tagged build
+
+on:
+  push:
+    tags: [ '*-1.7.10' ]
+
+permissions:
+  contents: write
+
+jobs:
+  release-tags:
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: |
+            8
+            17
+            25
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Build and test release
+        env:
+          IVL_READ_TOKEN: ${{ secrets.IVL_READ_TOKEN }}
+        run: |
+          python3 -m unittest discover -s scripts/tests
+          bash gradlew --no-daemon build
+      - name: Reject unsupported publication destinations
+        run: |
+          if grep -Eq '^(modrinthProjectId|curseForgeProjectId)[[:space:]]*=[[:space:]]*[^[:space:]]' gradle.properties; then
+            echo 'Add mandatory publishing and artifact verification before enabling Modrinth or CurseForge.' >&2
+            exit 1
+          fi
+      - name: Publish and verify Maven when enabled
+        env:
+          PUBLISH_MAVEN: ${{ vars.PUBLISH_MAVEN }}
+          MAVEN_USER: ${{ secrets.MAVEN_USER }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          MAVEN_PUBLISHING_URL: ${{ vars.MAVEN_PUBLISHING_URL || 'https://nexus.gtnewhorizons.com/repository/releases/' }}
+        run: |
+          if [[ "$PUBLISH_MAVEN" == true || -n "$MAVEN_USER" || -n "$MAVEN_PASSWORD" ]]; then
+            test -n "$MAVEN_USER" && test -n "$MAVEN_PASSWORD"
+            bash gradlew --no-daemon "-PmavenPublishUrl=$MAVEN_PUBLISHING_URL" publish
+            python3 scripts/verify-maven.py
+          fi
+      - name: Create and verify GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/publish-release.sh
