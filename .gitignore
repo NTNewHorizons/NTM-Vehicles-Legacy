@@ -37,3 +37,4 @@ addon.late.local.gradle.kts
 layout.json
 .dependencies/
 .gtnh-workflows/
+__pycache__/

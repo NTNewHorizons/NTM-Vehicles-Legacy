@@ -13,7 +13,12 @@ def suppliedIvlJar = providers.gradleProperty('ivlJar').isPresent()
 tasks.register('prepareIvl', Exec) {
     onlyIf { !suppliedIvlJar }
     inputs.files('scripts/prepare-dependencies.sh', 'patches/ivl-custom-hit-once.patch')
+    inputs.file('scripts/git-askpass.sh')
+    inputs.property('ivlSource', providers.gradleProperty('ivlSource').orElse(
+        providers.environmentVariable('IVL_SOURCE')).getOrElse('https://github.com/THOMASS47/IVL.git'))
     outputs.file(ivlJar)
     outputs.file('.dependencies/IVL/build/libs/immersivevehicleslegacy-0.1.0-ntmv2.jar')
     commandLine 'bash', file('scripts/prepare-dependencies.sh')
+    environment 'IVL_SOURCE', providers.gradleProperty('ivlSource').orElse(
+        providers.environmentVariable('IVL_SOURCE')).getOrElse('https://github.com/THOMASS47/IVL.git')
 }
