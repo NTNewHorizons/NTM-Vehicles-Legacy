@@ -16,7 +16,11 @@ import com.hbm.explosion.ExplosionLarge;
 import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.jsondefs.JSONBullet;
 
-/** Adapts the upstream effects to the user's 1.7.10 NTM API. */
+/**
+ * Original-NTM counterpart of upstream's CE/ExtendedEdition NTMCompatibility adapter.
+ * The pinned 1.7.10 API needs no reflective fork selection: standard Torex and
+ * unattributed napalm effects are called directly.
+ */
 final class NTMEffects {
 
     private NTMEffects() {}

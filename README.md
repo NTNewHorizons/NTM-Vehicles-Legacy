@@ -3,7 +3,7 @@
 Backport of [TechTastic's NTM: Vehicles](https://github.com/TechTastic/NTM-Vehicles)
 ([NTNewHorizons fork](https://github.com/NTNewHorizons/NTM-Vehicles)).
 Requires Immersive Vehicles: Legacy, HBM 1.0.27_X5842, and UniMixins for 1.7.10.
-Upstream changes integrated through `6f11bbc` (power-armour seat detection).
+Upstream changes integrated through `48a1648` (power-armour seat detection and bullet-effect compatibility).
 This backport targets original 1.7.10 NTM, not ExtendedEdition or CE.
 
 ## Build
@@ -33,6 +33,11 @@ Unchanged `CUSTOM` bullet functions:
 | `ntm_vehicles:nuke` | NTM MK5 explosion with standard mushroom cloud |
 | `ntm_vehicles:gas` | NTM gas entities; count from blast strength |
 | `ntm_vehicles:napalm` | 2.5-strength explosion with ignition and flames |
+
+Upstream's CE/ExtendedEdition compatibility adapter maps to `NTMEffects` here:
+original NTM uses `statFacStandard` for the standard Torex cloud, the unattributed
+`ExplosionLarge.explode` overload, and integer-coordinate ignition helpers.
+No CE/ExtendedEdition signature probing or 1.12.2 classes are needed.
 
 `blastStrength` is used unless zero, when `diameter / 10` is used.
 Gas tuning lives in `constantValues`: `gasType` (0 chlorine, 1 cloud,
