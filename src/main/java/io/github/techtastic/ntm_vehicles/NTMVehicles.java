@@ -5,8 +5,6 @@ import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.LoaderException;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -16,7 +14,7 @@ import minecrafttransportsimulator.entities.instances.EntityBullet;
     modid = NTMVehicles.MOD_ID,
     name = NTMVehicles.MOD_NAME,
     version = Tags.VERSION,
-    dependencies = "required-after:unimixins;required-after:immersivevehicleslegacy@[0.1.0-ntmv2];required-after:hbm@[1.0.27,)",
+    dependencies = "required-after:unimixins;required-after:immersivevehicleslegacy;required-after:hbm@[1.0.27,)",
     acceptedMinecraftVersions = "[1.7.10]",
     acceptableRemoteVersions = "*")
 public class NTMVehicles {
@@ -27,16 +25,8 @@ public class NTMVehicles {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        // Forge's range parser cannot express versions containing a closing parenthesis.
-        String hbmVersion = Loader.instance()
-            .getIndexedModList()
-            .get("hbm")
-            .getVersion();
-        if (!"1.0.27 BETA (5842)".equals(hbmVersion)) {
-            throw new LoaderException(
-                "NTM: Vehicles requires HBM 1.0.27_X5842 (runtime version " + "1.0.27 BETA (5842)); found "
-                    + hbmVersion);
-        }
+        // HBM >= 1.0.27 is enforced by the annotation dependency (Forge range
+        // syntax cannot express "1.0.27 BETA (5842)").
     }
 
     @Mod.EventHandler
