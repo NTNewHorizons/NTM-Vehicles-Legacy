@@ -37,7 +37,7 @@ configurations.testImplementation.extendsFrom(configurations.devOnlyNonPublishab
 
 dependencies {
     // Pinned HBM release for the 1.7.10 bridge.
-    devOnlyNonPublishable('com.hbm:HBM-NTM:1.0.27_X5808:dev') { transitive = false }
+    devOnlyNonPublishable('com.hbm:HBM-NTM:1.0.27_X5842:dev') { transitive = false }
     // Patched IVL built locally by scripts/prepare-dependencies.sh.
     devOnlyNonPublishable files('.dependencies/IVL/build/libs/immersivevehicleslegacy-0.1.0-ntmv2-dev.jar').builtBy(
         tasks.named('prepareIvl'))

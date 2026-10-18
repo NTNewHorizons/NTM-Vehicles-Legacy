@@ -2,7 +2,9 @@
 
 Backport of [TechTastic's NTM: Vehicles](https://github.com/TechTastic/NTM-Vehicles)
 ([NTNewHorizons fork](https://github.com/NTNewHorizons/NTM-Vehicles)).
-Requires Immersive Vehicles: Legacy and HBM 1.0.27_X5808 for 1.7.10.
+Requires Immersive Vehicles: Legacy, HBM 1.0.27_X5842, and UniMixins for 1.7.10.
+Upstream changes integrated through `6f11bbc` (power-armour seat detection).
+This backport targets original 1.7.10 NTM, not ExtendedEdition or CE.
 
 ## Build
 
@@ -12,13 +14,15 @@ Requires Immersive Vehicles: Legacy and HBM 1.0.27_X5808 for 1.7.10.
 
 Pinned development dependencies:
 
-- HBM `com.hbm:HBM-NTM:1.0.27_X5808:dev` from `https://maven.ntmr.dev/releases/`
+- HBM `com.hbm:HBM-NTM:1.0.27_X5842:dev` from `https://maven.ntmr.dev/releases/`
 - IVL `THOMASS47/IVL` commit `d32bf23`, built locally with `patches/ivl-custom-hit-once.patch`
+- UniMixins, supplied by the GTNH build's `usesMixins` integration
 
 IVL is closed source for now: authenticate Git for `THOMASS47/IVL`, or set `IVL_SOURCE`
 to an authorized mirror. The bridge compiles against the `minecrafttransportsimulator.*`
 classes inside the IVL dev jar. Install `build/libs/ntm_vehicles-*.jar` alongside
-normal IVL and NTM jars in Forge 10.13.4.1614. The bridge jar bundles neither.
+normal IVL, NTM, and UniMixins jars in Forge 10.13.4.1614. The bridge jar bundles none.
+Install the bridge on both client and server for armour-driven animations and conditions.
 
 ## Pack API
 
@@ -35,3 +39,27 @@ Gas tuning lives in `constantValues`: `gasType` (0 chlorine, 1 cloud,
 2 pink cloud, else orange) and `gasSpreadSpeed` (default 1.25).
 Effects run server-side only. The bridge adds no blocks, items, or saved
 data; roll back by removing its jar.
+
+### Power armour detection
+
+IVL packs can use `seat_rider_power_armor` on a seat, or
+`seat_rider_power_armor_1` from the vehicle for its first seat (normal numbered-part lookup).
+
+- `1`: a player wearing a complete matching NTM battery- or fuel-powered armour set,
+  including subclasses.
+- `0`: empty seat, non-player rider, ordinary armour, or an incomplete/mixed set.
+
+Detection uses NTM's `ArmorFSB.hasFSBArmorIgnoreCharge`, including its optional-helmet
+rules. Empty batteries/fuel tanks still count. The value is recomputed on both sides
+as riders and equipment change; it does not restrict mounting or alter armour behaviour.
+
+```json
+{
+  "animationType": "visibility",
+  "variable": "seat_rider_power_armor",
+  "clampMin": 1,
+  "clampMax": 1
+}
+```
+
+Removing the bridge disables these bullet effects and the armour variable; no save migration is needed.

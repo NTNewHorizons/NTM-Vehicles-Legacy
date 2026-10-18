@@ -173,11 +173,11 @@ public class PackApiCompatibilityTest {
     }
 
     @Test
-    public void forgeMetadataRequiresIvlAndNtmNotMtsOrMixinBooter() {
+    public void forgeMetadataRequiresIvlNtmAndUniMixinsNotMtsOrMixinBooter() {
         Mod mod = NTMVehicles.class.getAnnotation(Mod.class);
         assertEquals("ntm_vehicles", mod.modid());
         assertEquals(
-            "required-after:immersivevehicleslegacy@[0.1.0-ntmv2];required-after:hbm@[1.0.27,)",
+            "required-after:unimixins;required-after:immersivevehicleslegacy@[0.1.0-ntmv2];required-after:hbm@[1.0.27,)",
             mod.dependencies());
         assertEquals("[1.7.10]", mod.acceptedMinecraftVersions());
     }
@@ -186,11 +186,11 @@ public class PackApiCompatibilityTest {
     public void hbmVersionConstraintAcceptsTestedRuntimeAndRejectsUntestedBuilds() {
         String dependency = NTMVehicles.class.getAnnotation(Mod.class)
             .dependencies()
-            .split(";")[1];
+            .split(";")[2];
         String versionReference = dependency.substring("required-after:".length());
         String testedVersion = MainRegistry.class.getAnnotation(Mod.class)
             .version();
-        assertEquals("1.0.27 BETA (5808)", testedVersion);
+        assertEquals("1.0.27 BETA (5842)", testedVersion);
         assertTrue(
             VersionParser.parseVersionReference(versionReference)
                 .containsVersion(new DefaultArtifactVersion("hbm", testedVersion)));
@@ -207,7 +207,7 @@ public class PackApiCompatibilityTest {
                 .thenReturn(loader);
             when(hbm.getVersion()).thenReturn(testedVersion);
             new NTMVehicles().init(null);
-            for (String unsupported : Arrays.asList("1.0.27 BETA (5807)", "1.0.27 BETA (5809)", "1.0.27_X5808")) {
+            for (String unsupported : Arrays.asList("1.0.27 BETA (5808)", "1.0.27 BETA (5843)", "1.0.27_X5842")) {
                 when(hbm.getVersion()).thenReturn(unsupported);
                 LoaderException error = assertThrows(LoaderException.class, () -> new NTMVehicles().init(null));
                 assertTrue(
