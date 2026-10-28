@@ -21,11 +21,12 @@ import minecrafttransportsimulator.jsondefs.JSONBullet;
  * The pinned 1.7.10 API needs no reflective fork selection: standard Torex and
  * unattributed napalm effects are called directly.
  */
-final class NTMEffects {
+public final class NTMEffects {
 
     private NTMEffects() {}
 
-    static void nuke(World world, Point3D pos, JSONBullet definition) {
+    // Package-private gas/napalm stay internal; nuke is shared with the EntityBulletMixin.
+    public static void nuke(World world, Point3D pos, JSONBullet definition) {
         int strength = (int) Util.getBlastSize(definition);
         world.spawnEntityInWorld(EntityNukeExplosionMK5.statFac(world, strength, pos.x, pos.y, pos.z));
         EntityNukeTorex.statFacStandard(world, pos.x, pos.y, pos.z, strength);

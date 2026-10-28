@@ -17,6 +17,6 @@ public class NTMVehiclesMixinLoader implements ILateMixinLoader {
 
     @Override
     public List<String> getMixins(Set<String> loadedMods) {
-        return Arrays.asList("WrapperEntityAccessor", "PartSeatMixin");
+        return Arrays.asList("WrapperEntityAccessor", "PartSeatMixin", "EntityBulletMixin");
     }
 }

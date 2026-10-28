@@ -45,6 +45,15 @@ Gas tuning lives in `constantValues`: `gasType` (0 chlorine, 1 cloud,
 Effects run server-side only. The bridge adds no blocks, items, or saved
 data; roll back by removing its jar.
 
+## Stock explosive bullets
+
+Explicit `customHitFunctions` are not the only trigger. Any bullet with the
+`explosive` type and `"nuke": 1` (or more) in its `constantValues` fires the
+NTM nuclear explosion in place of the vanilla IVL explosion—same MK5 blast and
+Torex mushroom cloud as `ntm_vehicles:nuke`. This covers stock packs such as
+MTS40k (120mm Nuclear Shell, Davy Crockett, Little Boy, Tsar Bomba), which
+carry only that constant. `blastStrength` selects the yield as usual.
+
 ### Power armour detection
 
 IVL packs can use `seat_rider_power_armor` on a seat, or
